@@ -5,9 +5,9 @@ import traceback
 import uuid
 
 from fedml.computing.scheduler.model_scheduler.device_model_cache import FedMLModelCache
+from fedml.computing.scheduler.model_scheduler.device_workload_monitor import FedMLWorkloadMonitor
 from fedml.computing.scheduler.model_scheduler.modelops_configs import ModelOpsConfigs
 from fedml.core.distributed.communication.mqtt.mqtt_manager import MqttManager
-
 
 class FedMLModelMetrics:
     def __init__(self, end_point_id, end_point_name, model_id, model_name, model_version,
@@ -84,11 +84,19 @@ class FedMLModelMetrics:
         self.monitor_mqtt_mgr.connect()
         self.monitor_mqtt_mgr.loop_start()
 
+        device_workload_monitor = FedMLWorkloadMonitor()
         index = 0
         while True:
             time.sleep(2)
             try:
                 index = self.send_monitoring_metrics(index)
+                # device_workload_monitor.update_state(index, qps, rt)
+                # if device_workload_monitor.scale_out():
+                #     # Reserve resources, send message through mqtt manager.
+                #     pass
+                # if device_workload_monitor.scale_in():
+                #     # Release resources, send message through mqtt manager.
+                #     pass
             except Exception as e:
                 print("Exception when processing monitoring metrics: {}".format(traceback.format_exc()))
 
