@@ -45,6 +45,7 @@ def __login_as_edge_server_and_agent(args, userid, version, api_key="", use_extr
     edge_id = 0
     while config_try_count < 5:
         try:
+            # Trigger MLOps config request.
             mqtt_config, s3_config, mlops_config, docker_config = runner.fetch_configs()
             service_config["mqtt_config"] = mqtt_config
             service_config["s3_config"] = s3_config
@@ -69,13 +70,13 @@ def __login_as_edge_server_and_agent(args, userid, version, api_key="", use_extr
         click.echo("Please check whether your network is normal!")
         return
 
-    # Judge whether running from fedml docker hub
+    # Check whether we are running from within fedml docker hub.
     is_from_fedml_docker_hub = False
     dock_loc_file = ServerConstants.get_docker_location_file()
     if os.path.exists(dock_loc_file):
         is_from_fedml_docker_hub = True
 
-    # Build unique device id
+    # Create unique device id.
     if is_from_docker:
         unique_device_id = args.current_device_id + "@" + args.os_name + ".Docker.Edge.Server"
     else:
@@ -88,11 +89,12 @@ def __login_as_edge_server_and_agent(args, userid, version, api_key="", use_extr
     if use_extra_device_id_suffix is not None:
         unique_device_id = args.current_device_id + "@" + args.os_name + use_extra_device_id_suffix
 
-    # Bind account id to FedML® Nexus AI Platform
+    # Bind account id to FedML® Nexus AI Platform.
     register_try_count = 0
     edge_id = 0
     while register_try_count < 5:
         try:
+            # Following request will assign the device role.
             edge_id, user_name, extra_url = runner.bind_account_and_device_id(
                 service_config["ml_ops_config"]["EDGE_BINDING_URL"], args.account_id, unique_device_id, args.os_name,
                 api_key=api_key, role=role
@@ -126,7 +128,7 @@ def __login_as_edge_server_and_agent(args, userid, version, api_key="", use_extr
     # Setup MQTT connection for communication with the FedML server.
     runner.setup_agent_mqtt_connection(service_config)
 
-    # Start mqtt looper
+    # Start mqtt looper.
     runner.start_agent_mqtt_loop()
 
 
@@ -193,6 +195,7 @@ def __login_as_cloud_agent(args, userid, version):
         edge_id = 0
     while register_try_count < 5:
         try:
+            # TODO(fedml-alex): Following request will assign the default role (`edge_server`) to the device.
             edge_id, user_name, extra_url = runner.bind_account_and_device_id(
                 service_config["ml_ops_config"]["EDGE_BINDING_URL"], args.account_id, unique_device_id, args.os_name
             )
@@ -257,6 +260,7 @@ def __login_as_cloud_server(args, userid, version):
     edge_id = 0
     while config_try_count < 5:
         try:
+            # Trigger MLOps config request.
             mqtt_config, s3_config, mlops_config, docker_config = runner.fetch_configs()
             service_config["mqtt_config"] = mqtt_config
             service_config["s3_config"] = s3_config
@@ -281,7 +285,7 @@ def __login_as_cloud_server(args, userid, version):
         click.echo("Please check whether your network is normal!")
         return
 
-    # Build unique device id
+    # Build unique device id.
     if hasattr(args, "device_id") and args.device_id is not None and args.device_id != "0":
         unique_device_id = args.current_device_id
     else:
@@ -292,6 +296,7 @@ def __login_as_cloud_server(args, userid, version):
     edge_id = 0
     while register_try_count < 5:
         try:
+            # TODO(fedml-alex): Following request will assign the default role (`edge_server`) to the device.
             edge_id, user_name, extra_url = runner.bind_account_and_device_id(
                 service_config["ml_ops_config"]["EDGE_BINDING_URL"], args.account_id, unique_device_id, args.os_name
             )

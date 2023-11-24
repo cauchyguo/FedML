@@ -14,6 +14,8 @@ from fedml.computing.scheduler.model_scheduler import device_client_constants
 
 
 class FedMLModelDeviceClientRunner:
+    # TODO(fedml-alex,fedml-dimitris): We could make an abstract class for all the *Runner classes
+    # and materialize with the respective specs for client, server, etc...
     def __init__(self, args, current_device_id, os_name, is_from_docker, service_config, infer_host="127.0.0.1"):
         self.agent_process = None
         self.agent_runner = None

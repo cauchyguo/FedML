@@ -34,6 +34,7 @@ class ComputeCacheManager(object):
         self.redis_connection = None
 
     def setup_redis_connection(self, redis_addr, redis_port, redis_password="fedml_default"):
+        # TODO(fedml-alex,fedml-dimitris): Make sure Redis service is alive, add a ping check, else exit.
         if redis_password is None or redis_password == "" or redis_password == "fedml_default":
             self.redis_pool = redis.ConnectionPool(host=redis_addr, port=int(redis_port), decode_responses=True)
         else:

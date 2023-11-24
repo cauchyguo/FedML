@@ -84,11 +84,21 @@ class FedMLServerRunner:
         self.run_as_cloud_server_and_agent = False
         self.fedml_packages_base_dir = None
         self.fedml_packages_unzip_dir = None
+        # TODO(fedml-alex,fedml-dimitris): we need to explain the role 
+        # of the main MQTT manager, maybe something like: 
+        # "Manager setups listeners and handlers for messages published 
+        # to the broker topics."
         self.mqtt_mgr = None
         self.running_request_json = dict()
         self.run_id = run_id
+        # TODO(fedml-alex,fedml-dimitris): we need to explain the role 
+        # of the client MQTT manager, maybe something like: 
+        # "Client publishes messages to the broker topics."
         self.client_mqtt_mgr = None
         self.client_mqtt_is_connected = False
+        # TODO(fedml-alex,fedml-dimitris): better to initialize the lock here, 
+        # threading.Lock(), instead of checking within every function if it is
+        # undefined, i.e., client_mqtt_lock is None.
         self.client_mqtt_lock = None
         self.unique_device_id = None
         self.edge_id = edge_id
@@ -2070,6 +2080,9 @@ class FedMLServerRunner:
             logging.info("recover starting train message after upgrading: {}".format(traceback.format_exc()))
 
     def on_agent_mqtt_connected(self, mqtt_client_object):
+        # TODO(fedml-alex,fedml-dimitris): it seems that it will be better to define 
+        # the topics as class attributes self.<topic_name> so that they can be reused,
+        # for instance to unsubscribe(<topic_name>) when the agent disconnects.
         # The MQTT message topic format is as follows: <sender>/<receiver>/<action>
 
         # Setup MQTT message listener for starting training
@@ -2102,6 +2115,9 @@ class FedMLServerRunner:
         self.mqtt_mgr.add_message_listener(topic_response_device_info, self.callback_response_device_info)
 
         # Subscribe topics for starting train, stopping train and fetching client status.
+        # We set the Quality of Service (qos) to 2, meaning that:
+        #   - the publisher will only send a message once and 
+        #   - the subscriber will only receive the message once
         mqtt_client_object.subscribe(topic_start_train, qos=2)
         mqtt_client_object.subscribe(topic_stop_train, qos=2)
         mqtt_client_object.subscribe(topic_server_status, qos=2)
@@ -2126,6 +2142,8 @@ class FedMLServerRunner:
         )
 
     def on_agent_mqtt_disconnected(self, mqtt_client_object):
+        # TODO(fedml-alex,fedml-dimitris): Shouldn't we also unsubscribe 
+        # from all topics, `[mqtt_client_object.unsubscribe(topic) for topic in topics]`?
         MLOpsStatus.get_instance().set_server_agent_status(
             self.edge_id, ServerConstants.MSG_MLOPS_SERVER_STATUS_OFFLINE
         )
@@ -2148,6 +2166,10 @@ class FedMLServerRunner:
 
         # Start local API services
         python_program = get_python_program()
+        # Following process uses the uvicorn module to setup an ASGI
+        # (Asynchronous Server Gateway Interface) web server that 
+        # listens for incoming requests on the endpoints registered 
+        # on the `api = FastAPI()` object.
         self.local_api_process = ServerConstants.exec_console_with_script(
             "{} -m uvicorn fedml.computing.scheduler.master.server_api:api --host 0.0.0.0 --port {} "
             "--log-level critical".format(python_program, ServerConstants.LOCAL_SERVER_API_PORT),
@@ -2157,7 +2179,7 @@ class FedMLServerRunner:
         # if self.local_api_process is not None and self.local_api_process.pid is not None:
         #     print(f"Server local API process id {self.local_api_process.pid}")
 
-        # Setup MQTT connected listener
+        # Setup MQTT connect and disconnect listeners (i.e., callbacks).
         self.mqtt_mgr.add_connected_listener(self.on_agent_mqtt_connected)
         self.mqtt_mgr.add_disconnected_listener(self.on_agent_mqtt_disconnected)
         self.mqtt_mgr.connect()

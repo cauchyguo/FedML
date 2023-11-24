@@ -10,6 +10,8 @@ from fedml.computing.scheduler.master.server_constants import ServerConstants
 
 
 class FedMLClientDataInterface(Singleton):
+    
+    # TODO(fedml-alex): Can we add one or two sentences on what this job limit refers to?
     MAX_JOB_LIST_SIZE = 50000
     ERRCODE_JOB_FAILED = 1
     ERRCODE_JOB_KILLED = 2
@@ -114,6 +116,11 @@ class FedMLClientDataInterface(Singleton):
                                  status)
 
     def open_job_db(self):
+        # TODO(fedml-alex,fedml-dimitris): We might need to check:
+        # (1) if connection is established
+        # (2) if we need to override previous records/sessions
+        # (3) we could add a timestamp to the job.db, `date_time`_jobs.db to make it unique
+        # (4) better to move the job_db_path attribute at class initialization
         if not os.path.exists(ClientConstants.get_database_dir()):
             os.makedirs(ClientConstants.get_database_dir(), exist_ok=True)
         job_db_path = os.path.join(ClientConstants.get_database_dir(), "jobs.db")
@@ -189,6 +196,8 @@ class FedMLClientDataInterface(Singleton):
 
         self.open_job_db()
         current_cursor = self.db_connection.cursor()
+        # TODO(fedml-alex,fedml-dimitris): does the updated_time always reflect 
+        # the most recent/current job? Maybe job_id desc could it be better?
         results = current_cursor.execute("SELECT *  from jobs order by updated_time desc limit(1)")
         for row in results:
             job_obj = FedMLClientJobModel()
@@ -433,6 +442,8 @@ class FedMLClientJobModel(object):
 class FedMLClientJobListModel(object):
 
     def __init__(self):
+        # TODO(fedml-alex,fedml-dimitris): The following 
+        # attributes except for self.job_list are not used.
         self.total_num = 0
         self.total_page = 0
         self.page_num = 0

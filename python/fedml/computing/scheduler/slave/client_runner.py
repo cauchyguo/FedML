@@ -1454,6 +1454,9 @@ class FedMLClientRunner:
         pass
 
     def setup_agent_mqtt_connection(self, service_config):
+        # TODO(fedml-alex,fedml-dimitris): This function is almost identical with the 
+        # setup_agent_mqtt_connection() used in both server_runner.py and device_client_runner.py
+        # we could make a common function and parameterize accordingly.
         # Setup MQTT connection
         self.mqtt_mgr = MqttManager(
             service_config["mqtt_config"]["BROKER_HOST"],

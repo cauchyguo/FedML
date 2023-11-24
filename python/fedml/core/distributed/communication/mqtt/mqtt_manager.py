@@ -12,6 +12,7 @@ from fedml.core.mlops.mlops_profiler_event import MLOpsProfilerEvent
 import fedml
 
 class MqttManager(object):
+
     def __init__(self, host, port, user, pwd, keepalive_time,
                  client_id, last_will_topic=None, last_will_msg=None):
         self._client = None
@@ -26,6 +27,10 @@ class MqttManager(object):
         self._subscribed_listeners = list()
         self._published_listeners = list()
         self._passthrough_listeners = list()
+        # The last will topic and last will message is an MQTT-specific 
+        # feature that allows MQTT clients to specify the last message 
+        # that will be automatically published by the broker on their 
+        # behalf, if or when an unexpected disconnection occurs.
         self.last_will_topic = last_will_topic
         self.last_will_msg = last_will_msg
 

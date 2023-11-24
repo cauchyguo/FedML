@@ -33,7 +33,18 @@ class FedMLModelCache(object):
         self.model_deployment_db = FedMLModelDatabase().get_instance()
         self.model_deployment_db.create_table()
 
-    def setup_redis_connection(self, redis_addr, redis_port, redis_password="fedml_default"):
+    def setup_redis_connection(self, redis_addr, redis_port, redis_password="fedml_default"):   
+
+        try:
+            # TODO(fedml-alex,fedml-dimitris): need to check if Redis is alive, else exit.
+            # In general we can simplify this and define one function/class for Redis DB
+            # so that it is reusable, see also Redis connection pool in:
+            # python/fedml/computing/scheduler/scheduler_core/compute_cache_manager.py
+            r = redis.Redis(redis_addr, socket_connect_timeout=3) # short timeout for the test
+            r.ping()
+        except Exception as e:
+            print("Redis server exception: {}".format(e), file=open("/tmp/fedml.out", "w+"))
+
         if redis_password is None or redis_password == "" or redis_password == "fedml_default":
             self.redis_pool = redis.ConnectionPool(host=redis_addr, port=int(redis_port), decode_responses=True)
         else:

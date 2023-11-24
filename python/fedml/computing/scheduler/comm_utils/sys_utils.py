@@ -124,6 +124,8 @@ def get_sys_runner_info():
 
 # GPU list: [GPU(ID, uuid, load, memoryTotal, memoryUsed, memoryFree, driver,
 # gpu_name, serial, display_mode, display_active, temperature)]
+# TODO(fedml-alex,fedml-dimitris): Maybe we can load the GPUs specs 
+# from a .csv file instead, so that we can easily add new hardware types.
 def get_gpu_list():
     if enable_simulation_gpu:
         ret_gpu_list = [
@@ -258,6 +260,8 @@ def get_running_info(cs_home_dir, cs_info_dir):
 
 
 def get_python_program():
+    # TODO(fedml-alex,fedml-dimitris): We could change the function name to
+    # get_python_interpreter() to reflect better what the function returns.
     python_program = "python3"
     current_python_version = sys.version.split(" ")[0]
     try:

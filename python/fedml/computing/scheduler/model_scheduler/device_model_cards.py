@@ -21,7 +21,6 @@ from fedml.computing.scheduler.model_scheduler.device_model_object import FedMLM
 from fedml.computing.scheduler.model_scheduler.device_client_constants import ClientConstants
 from fedml.computing.scheduler.comm_utils.security_utils import get_api_key, save_api_key
 
-
 class FedMLModelCards(Singleton):
 
     def __init__(self):

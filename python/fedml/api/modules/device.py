@@ -116,10 +116,12 @@ def _bind(
     if docker is None:
         is_docker = False
 
-    infer_host = "127.0.0.1"
-    redis_addr = "local"
-    redis_port = "6379"
-    redis_password = "fedml_default"
+    # TODO(fedml-alex,fedml-dimitris): The following redis conection credentials
+    # are already defined in the bind() method above.
+    # infer_host = "127.0.0.1"
+    # redis_addr = "local"
+    # redis_port = "6379"
+    # redis_password = "fedml_default"
 
     if is_client is True:
         if is_docker:
@@ -127,7 +129,8 @@ def _bind(
             return
         pip_source_dir = os.path.dirname(__file__)
         pip_source_dir = os.path.dirname(pip_source_dir)
-        pip_source_dir = os.path.dirname(pip_source_dir)
+        # TODO(fedml-alex,fedml-dimitris): This is a duplicate.
+        # pip_source_dir = os.path.dirname(pip_source_dir)
         login_cmd = os.path.join(pip_source_dir, "computing", "scheduler", "slave", "client_daemon.py")
 
         client_logout()
@@ -172,7 +175,7 @@ def _bind(
 
         pip_source_dir = os.path.dirname(__file__)
         pip_source_dir = os.path.dirname(pip_source_dir)
-        pip_source_dir = os.path.dirname(pip_source_dir)
+        # pip_source_dir = os.path.dirname(pip_source_dir)
         login_cmd = os.path.join(pip_source_dir, "computing", "scheduler", "master", "server_daemon.py")
         server_logout()
         sys_utils.cleanup_login_process(ServerConstants.LOCAL_HOME_RUNNER_DIR_NAME,
