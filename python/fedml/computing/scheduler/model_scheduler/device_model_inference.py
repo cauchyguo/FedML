@@ -55,6 +55,7 @@ def root():
 
 
 @api.post('/api/v1/predict')
+@api.post('/chat/completions')
 async def predict(request: Request):
     # Get json data
     input_json = await request.json()
@@ -112,7 +113,10 @@ def _predict(end_point_id, input_json, header=None):
         # Send inference request to idle device
         print("inference url {}.".format(inference_output_url))
         if inference_output_url != "":
-            input_list = input_json["inputs"]
+            if "inputs" not in input_json:
+                input_list = input_json
+            else:
+                input_list = input_json["inputs"]
             stream_flag = input_json.get("stream", False)
             input_list["stream"] = input_list.get("stream", stream_flag)
             output_list = input_json.get("outputs", [])
