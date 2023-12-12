@@ -98,6 +98,8 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
         gpu_ids = None
         pass
 
+    logging.info(f"After query redis, num_gpus: {num_gpus}, gpu_ids: {gpu_ids}")
+
     if not torch.cuda.is_available():
         gpu_attach_cmd = ""
     else:
@@ -215,8 +217,10 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
                 config = yaml.safe_load(file)
                 # Resource related
                 use_gpu = config.get('use_gpu', False)
+                gpu_ids = config.get('gpu_ids', [])
                 usr_indicated_wait_time = config.get('deploy_timeout', 900)
                 usr_indicated_worker_port = config.get('worker_port', "")
+                shm_size = config.get('shm_size', None)
                 if usr_indicated_worker_port == "":
                     usr_indicated_worker_port = os.environ.get("FEDML_WORKER_PORT", "")
                 
@@ -269,6 +273,7 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
                 else:
                     dst_bootstrap_dir = ""
 
+                # Image related
                 enable_custom_image = config.get("enable_custom_image", False)
                 docker_registry_user_name = config.get("docker_registry_user_name", "")
                 docker_registry_user_password = config.get("docker_registry_user_password", "")
@@ -363,6 +368,7 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
         device_requests = []
         if use_gpu:
             logging.info("Number of GPUs: {}".format(num_gpus))
+            logging.info("GPU IDs: {}".format(gpu_ids))
             if gpu_ids is not None:
                 gpu_id_list = map(lambda x: str(x), gpu_ids)
                 device_requests.append(
@@ -412,6 +418,7 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
         logging.info(f"dst_bootstrap_dir: {dst_bootstrap_dir}")
         logging.info(f"src_code_dir: {src_code_dir}")
         logging.info(f"model_serving_dir: {model_serving_dir}")
+        logging.info(f"shm_size: {shm_size}")
 
         if extra_envs is not None:
             for key in extra_envs:
@@ -422,7 +429,6 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
             name=default_server_container_name,
             volumes=volumns,
             ports=[port_inside_container],  # port open inside the container
-            # entrypoint=["python3", relative_entry],
             environment=environment,
             host_config=client.api.create_host_config(
                 binds=binds,
@@ -430,7 +436,7 @@ def start_deployment(end_point_id, end_point_name, model_id, model_version,
                     port_inside_container: usr_indicated_worker_port  # Could be either None or a port number
                 },
                 device_requests=device_requests,
-                # mem_limit = "8g",   # Could also be configured in the docker desktop setting
+                shm_size=shm_size
             ),
             detach=True,
             command=entry_cmd if enable_custom_image else None
